@@ -1,0 +1,30 @@
+=====================================
+Visual Studio / MonoDevelop generated
+=====================================
+Debug/
+*.opendb
+*.sdf
+*.db
+
+============
+OS generated
+============
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.vs/
+
+==================
+Custom for project
+==================
+Build/
+ipch/
+CapabilityTesterUnity/Library
+CapabilityTesterUnity/*.CSharp
+CapabilityTesterUnity/*.sln
+
+*.db
