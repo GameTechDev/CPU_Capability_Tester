@@ -89,10 +89,10 @@ class CPUCapabilityDetector : MonoBehaviour
 
     void Awake()
     {
-        if(IsIntelCPU())
+        InitializeResources();
+        if (IsIntelCPU())
         {
             Debug.Log("You are running on an Intel CPU");
-            InitializeResources();
             Debug.Log("Default CPU threshold values based on i7-6700k specs @ ark.intel.com");
             Debug.Log("Default core count threshold: " + GetThresholdLogicalCoreCount());
             Debug.Log("Default maximum base frequency threshold: " + GetThresholdMaxBaseFrequencyMhz());
