@@ -64,4 +64,7 @@ extern "C" {
 	// GetCoreFreq returns the frequency at collection time, while PercMaxFrequency returns the percentage of the maximum frequency.
 	extern CAPABILITYTESTER_API double GetCoreFreq();
 	extern CAPABILITYTESTER_API double GetCorePercMaxFrequency();
+	extern CAPABILITYTESTER_API void GetFullProcessorNameString(char* buffer, int* bufferSize);
+	extern CAPABILITYTESTER_API void GetProcessorName(char* buffer, int* bufferSize);
+
 }

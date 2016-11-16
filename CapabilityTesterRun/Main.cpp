@@ -60,6 +60,16 @@ int main()
 		std::cout << "Comitted Memory (MB) = " << GetComittedMemoryMB() << std::endl;
 		std::cout << "Available Memory (MB) = " << GetAvailableMemoryMB() << std::endl;
 		std::cout << "Num physical cores = " << GetNumPhysicalCores() << std::endl;
+
+		const int size = 128;
+		char fullCPUNameString[size];
+		char cpuUNameString[size];
+
+		GetFullProcessorNameString(fullCPUNameString, (int*)&size);
+		std::cout << "Full CPU Name String = " << std::string(fullCPUNameString) << std::endl;
+
+		GetProcessorName(cpuUNameString, (int*)&size);
+		std::cout << "CPU Name = " << std::string(cpuUNameString) << std::endl;
 	}
 	else
 	{

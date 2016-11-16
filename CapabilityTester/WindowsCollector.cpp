@@ -9,6 +9,7 @@
 #include <D3D11.h>
 #include <dxdiag.h>
 #include <Setupapi.h>
+#include <regex>
 
 // PDH counter tokens - indexes token string vector
 enum PDH_TOKENS
@@ -45,10 +46,81 @@ size_t cache_l3_size() {
 	return size;
 }
 
+void InfoCollector::SetCPUBrandString()
+{
+	int CPUInfo[4] = { -1 };
+	unsigned   nExIds, i = 0;
+	char CPUBrandString[0x40];
+	__cpuid(CPUInfo, 0x80000000);
+	nExIds = CPUInfo[0];
+	for (i = 0x80000000; i <= nExIds; ++i)
+	{
+		__cpuid(CPUInfo, i);
+		if (i == 0x80000002)
+			memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
+		else if (i == 0x80000003)
+			memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
+		else if (i == 0x80000004)
+			memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+	}
+
+	mFullProcessorName = std::string(CPUBrandString);
+
+	try {
+		std::regex re(".*Intel\\(R\\)[[:space:]]Core\\(TM\\)[[:space:]](\\S+)[[:space:]]CPU.*");
+		std::smatch match;
+		if (std::regex_search(mFullProcessorName, match, re) && match.size() > 1) {
+			mProcessorName = match.str(1);
+		}
+		else {
+			mProcessorName = std::string("");
+		}
+	}
+	catch (std::regex_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+std::string InfoCollector::GetProcessorName()
+{
+	return mProcessorName;
+}
+
+std::string InfoCollector::GetFullProcessorNameString()
+{
+	return mFullProcessorName;
+}
+
+void cpuID(unsigned i, unsigned regs[4]) {
+	__cpuid((int *)regs, (int)i);
+}
+
+void InfoCollector::SetIsIntelCPU()
+{
+	char vendor[12];
+	unsigned regs[4];
+	cpuID(0, regs);
+	((unsigned *)vendor)[0] = regs[1];
+	((unsigned *)vendor)[1] = regs[3];
+	((unsigned *)vendor)[2] = regs[2];
+	std::string cpuVendor = std::string(vendor, 12);
+	static const std::string test("GenuineIntel");
+	if (cpuVendor.compare(test) != 0)
+	{
+		mIsIntelCPU = false;
+	}
+	else
+	{
+		mIsIntelCPU = true;
+	}
+}
+
 void InfoCollector::InitializeData()
 {
-
 	mQueryHandle = NULL;
+
+	SetIsIntelCPU();
+	SetCPUBrandString();
 
 	// Get cache size
 	size_t cacheSize = cache_l3_size();
@@ -56,7 +128,7 @@ void InfoCollector::InitializeData()
 
 	// Get total  physical memory
 	MEMORYSTATUSEX statex;
-	statex.dwLength = sizeof(statex); // I misunderstand that
+	statex.dwLength = sizeof(statex);
 	GlobalMemoryStatusEx(&statex);
 	mUsablePhysicalMemoryGB = (float)statex.ullTotalPhys / (1024 * 1024 * 1024);
 
@@ -105,39 +177,9 @@ InfoCollector::InfoCollector()
 
 InfoCollector::~InfoCollector() {}
 
-void cpuID(unsigned i, unsigned regs[4]) {
-#ifdef _WIN32
-	__cpuid((int *)regs, (int)i);
-
-#else
-	asm volatile
-		("cpuid" : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3])
-			: "a" (i), "c" (0));
-	// ECX is set to zero for CPUID function 4
-#endif
-}
-
-
 bool InfoCollector::IsIntelCPU()
 {
-	SYSTEM_INFO lpSysInfo;
-	GetNativeSystemInfo(&lpSysInfo);
-	char vendor[12];
-	unsigned regs[4];
-	cpuID(0, regs);
-	((unsigned *)vendor)[0] = regs[1];
-	((unsigned *)vendor)[1] = regs[3];
-	((unsigned *)vendor)[2] = regs[2];
-	std::string cpuVendor = std::string(vendor, 12);
-	const std::string test("GenuineIntel");
-	if (cpuVendor.compare(test) != 0)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+	return mIsIntelCPU;
 }
 
 double InfoCollector::GetCacheSize()
@@ -149,14 +191,6 @@ double InfoCollector::GetCacheSize()
 float InfoCollector::GetUsablePhysMemoryGB()
 {
 	return mUsablePhysicalMemoryGB;
-}
-
-void InfoCollector::AddCounters() {
-	
-}
-
-void InfoCollector::BuildMetricURIs() {
-
 }
 
 void InfoCollector::CollectPDHData() {

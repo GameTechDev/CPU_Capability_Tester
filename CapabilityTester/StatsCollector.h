@@ -44,28 +44,32 @@ public:
 	void CollectPDHData();															// Refresh all metric data
 	double CollectDataForMetric(METRIC metric);										// Allows metric classes to pull their own data
 	bool IsIntelCPU();																// Determine if Intel CPU
-	
 	unsigned int GetLogicalCoreCount();
 	unsigned int GetPhysicalCoreCount();
 	float GetUsablePhysMemoryGB();
 	double GetCacheSize();
-
+	std::string GetFullProcessorNameString();
+	std::string GetProcessorName();
 	std::unique_ptr<Metric>* GetMetric(METRIC varMetric);
 
 private:
+	std::string											mFullProcessorName;			// CPU Brand Information
+	std::string											mProcessorName;				// CPU Name
 	unsigned int										mCPUCoresNumber;			// Number of LOGICAL cores
 	unsigned int										mCPUPhysicalCoresNumber;	// Number of PHYSICAL cores
 	unsigned int										mResidentMemory;			// App resident Memory
 	unsigned int										mAvailableMemory;			// App resident Memory
 	double												mCacheSize;					// CPU cache size
 	float												mUsablePhysicalMemoryGB = 0;
+	bool												mIsIntelCPU = false;
 	std::vector<std::unique_ptr<Metric>>				mMetricsVec;				// stores single metrics
 	void GetCoreCounts();
 	void ConstructMetricDataStructure();
 	void InitializeData();
+	void SetCPUBrandString();
+	void SetIsIntelCPU();
+
 #ifdef _WINDOWS
-	void AddCounters();
-	void BuildMetricURIs();
 	HQUERY												mQueryHandle;				// Handle for metrics query to PDH
 #endif
 

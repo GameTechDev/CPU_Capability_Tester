@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
 using System;
+using System.Text;
 
 class CPUCapabilityDetector : MonoBehaviour
 {
@@ -83,8 +84,13 @@ class CPUCapabilityDetector : MonoBehaviour
     // GetCoreFreq returns the frequency at collection time, while PercMaxFrequency returns the percentage of the maximum frequency.
     [DllImport("CapabilityTester")]
     private static extern double GetCoreFreq();
+
+    // These are used to get the CPU name to be used for direct comparison in enabling features for specific models
     [DllImport("CapabilityTester")]
-    private static extern double GetCorePercMaxFrequency();
+    private static extern void GetFullProcessorNameString(StringBuilder buffer, ref int bufferSize);
+    [DllImport("CapabilityTester")]
+    private static extern void GetProcessorName(StringBuilder buffer, ref int bufferSize);
+
     #endregion
 
     void Awake()
@@ -145,6 +151,16 @@ class CPUCapabilityDetector : MonoBehaviour
             Debug.Log("Comitted Memory (MB) = " + GetComittedMemoryMB());
             Debug.Log("Available Memory (MB) = " + GetAvailableMemoryMB());
             Debug.Log("Num physical cores = " + GetNumPhysicalCores());
+
+            int bufferSize = 512;
+
+            StringBuilder fullNameBuffer = new StringBuilder(bufferSize);
+            GetFullProcessorNameString(fullNameBuffer, ref bufferSize);
+            Debug.Log(fullNameBuffer);
+
+            StringBuilder cpuNameBuffer = new StringBuilder(bufferSize);
+            GetProcessorName(cpuNameBuffer, ref bufferSize);
+            Debug.Log(cpuNameBuffer);
         }
         else
         {

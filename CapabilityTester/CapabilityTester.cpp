@@ -189,3 +189,47 @@ double GetMaxBaseFrequencyBias()
 	return FrequencyBiasMhz;
 }
 
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void GetSKU(char **cpuSKU, int* bufferSize)
+{
+	if (collector != nullptr)
+	{
+		std::string str = collector->GetFullProcessorNameString();
+		if (*bufferSize > (int)str.size())
+		{
+			*cpuSKU = new char[*bufferSize];
+			int r1 = strncpy_s(*cpuSKU, str.size() + 1, str.c_str(), str.size());
+			(*cpuSKU)[str.size()] = '\0';
+		}
+	}
+}
+
+void GetFullProcessorNameString(char* cpuSKU, int* bufferSize)
+{
+	if (collector != nullptr)
+	{
+		std::string str = collector->GetFullProcessorNameString();
+		if (*bufferSize > (int)str.size())
+		{
+			int r1 = strncpy_s(cpuSKU, str.size() + 1, str.c_str(), str.size());
+			cpuSKU[str.size()] = '\0';
+		}
+	}
+}
+
+void GetProcessorName(char* cpuSKU, int* bufferSize)
+{
+	if (collector != nullptr)
+	{
+		std::string str = collector->GetProcessorName();
+		if (*bufferSize > (int)str.size())
+		{
+			int r1 = strncpy_s(cpuSKU, str.size() + 1, str.c_str(), str.size());
+			cpuSKU[str.size()] = '\0';
+		}
+	}
+}
+
