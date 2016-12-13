@@ -137,7 +137,9 @@ class CPUCapabilityDetector : MonoBehaviour
             Debug.Log("Setting new cache size threshold to: " + GetThresholdCacheSizeMB());
 
             systemLevel = CategorizeSystemCPU();
-            if (systemLevel == SYSTEM_LEVELS.HIGH_END_SYSTEM)
+
+            // if the system gets bucketed as a high end system based on the thresholds, or is whitelisted - enable CPU intensive features!
+            if (systemLevel == SYSTEM_LEVELS.HIGH_END_SYSTEM || IsWhitelistedCPU())
             {
                 Debug.Log("With the new thresholds, this system has been categorized as high end.");
             }
@@ -169,7 +171,24 @@ class CPUCapabilityDetector : MonoBehaviour
 
     }
 
-    void Update()
+    // Allows the developer to specify specific CPU models that can be whitelisted
+    private bool IsWhitelistedCPU()
     {
+        int bufferSize = 512;
+        StringBuilder cpuNameBuffer = new StringBuilder(bufferSize);
+        GetProcessorName(cpuNameBuffer, ref bufferSize);
+        Debug.Log(cpuNameBuffer);
+        return (
+            (cpuNameBuffer.ToString() == "i7-3960X") ||
+            (cpuNameBuffer.ToString() == "i7-5930K") ||
+            (cpuNameBuffer.ToString() == "i7-4960X") ||
+            (cpuNameBuffer.ToString() == "i7-5960X") ||
+            (cpuNameBuffer.ToString() == "i7-5820K") ||
+            (cpuNameBuffer.ToString() == "i7-3970X") ||
+            (cpuNameBuffer.ToString() == "i7-4930K") ||
+            (cpuNameBuffer.ToString() == "i7-3930K") ||
+            (cpuNameBuffer.ToString() == "i7-6700K") ||
+            (cpuNameBuffer.ToString() == "i7-6700"));
     }
+
 }
