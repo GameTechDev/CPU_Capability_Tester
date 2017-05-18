@@ -1,7 +1,17 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright 2017 Intel Corporation
 //
-// Licensed under the Apache License, Version 2.0 (the "License");// you may not use this file except in compliance with the License.// You may obtain a copy of the License at//// http://www.apache.org/licenses/LICENSE-2.0//// Unless required by applicable law or agreed to in writing, software// distributed under the License is distributed on an "AS IS" BASIS,// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.// See the License for the specific language governing permissions and// limitations under the License.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
@@ -9,15 +19,11 @@
 #include "StatsCollector.h"
 #include <iostream>
 #include <sstream>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 InfoCollector* collector = nullptr;
-
-// HIGH END SYSTEM SPECS DEFAULTS
-int LogicalCoreThreshold = 8;
-double MemoryThresholdGB = 7.7;
-double MaxBaseFrequencyThresholdMhz = 4000;
-double FrequencyBiasMhz = 50;
-double CacheSizeThresholdMB = 8;
 
 bool IsIntelCPU(void)
 {
@@ -128,76 +134,6 @@ void FreeResources()
 	if(collector)
 		delete collector;
 }
-
-SYSTEM_LEVELS CategorizeSystemCPU(void)
-{
-	bool isHighEnd = true;
-
-	if (GetNumLogicalCores() < LogicalCoreThreshold)
-		isHighEnd = false;
-	if (GetUsablePhysMemoryGB() < MemoryThresholdGB)
-		isHighEnd = false;
-	if (GetMaxBaseFrequency() < (MaxBaseFrequencyThresholdMhz - FrequencyBiasMhz))
-		isHighEnd = false;
-	if (GetCacheSizeMB() < CacheSizeThresholdMB)
-		isHighEnd = false;
-
-	if (isHighEnd == true)
-		return HIGH_END_SYSTEM;
-	else
-		return LOW_END_SYSTEM;
-}
-
-void SetThresholdLogicalCoreCount(int count) {
-	LogicalCoreThreshold = count;
-}
-
-void SetThresholdMemoryGB(double memoryThreshold) {
-	MemoryThresholdGB = memoryThreshold;
-}
-
-void SetThresholdMaxBaseFrequencyMhz(double freqMaxMhz) {
-	MaxBaseFrequencyThresholdMhz = freqMaxMhz;
-}
-
-void SetThresholdCacheSizeMB(double cacheSize) {
-	CacheSizeThresholdMB = cacheSize;
-}
-
-void SetMaxBaseFrequencyBias(double bias)
-{
-	FrequencyBiasMhz = bias;
-}
-
-int GetThresholdLogicalCoreCount()
-{
-	return LogicalCoreThreshold;
-}
-
-double GetThresholdMemoryGB()
-{
-	return MemoryThresholdGB;
-}
-
-double GetThresholdMaxBaseFrequencyMhz()
-{
-	return MaxBaseFrequencyThresholdMhz;
-}
-
-double GetThresholdCacheSizeMB()
-{
-	return CacheSizeThresholdMB;
-}
-
-
-double GetMaxBaseFrequencyBias()
-{
-	return FrequencyBiasMhz;
-}
-
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 void GetSKU(char **cpuSKU, int* bufferSize)
 {

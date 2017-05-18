@@ -1,7 +1,22 @@
 ﻿/////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright 2017 Intel Corporation
 //
-// Licensed under the Apache License, Version 2.0 (the "License");// you may not use this file except in compliance with the License.// You may obtain a copy of the License at//// http://www.apache.org/licenses/LICENSE-2.0//// Unless required by applicable law or agreed to in writing, software// distributed under the License is distributed on an "AS IS" BASIS,// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.// See the License for the specific language governing permissions and// limitations under the License.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+//
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 using UnityEngine;
@@ -11,13 +26,6 @@ using System.Text;
 
 class CPUCapabilityDetector : MonoBehaviour
 {
-    enum SYSTEM_LEVELS
-    {
-        LOW_END_SYSTEM,
-        HIGH_END_SYSTEM,
-        NUM_SYSTEMS
-    };
-
     #region Essentials
 
     // These functions are used to allocate and initialize resources and to deallocate, respectively
@@ -99,102 +107,144 @@ class CPUCapabilityDetector : MonoBehaviour
 
     #endregion
 
+    enum SYSTEM_LEVELS
+    {
+        OFF,
+        LOW,
+        MEDIUM,
+        HIGH,
+        NUM_SYSTEMS
+    };
+
+    struct SystemThreshold
+    {
+        public int NumLogicalCores;
+        public double UsablePhysMemoryGB;
+        public double MaxBaseFrequency;
+        public double CacheSizeMB;
+
+        // Add your own metrics!
+    }
+
+    int SysLogicalCores;
+    double SysUsablePhysMemoryGB;
+    double SysMaxBaseFrequency;
+    double SysCacheSizeMB;
+
+    int BufferSize = 512;
+    string CPUName;
+
+    SystemThreshold LowSettings;
+    SystemThreshold MedSettings;
+    SystemThreshold HighSettings;
+
+    bool IsSystemHigherThanThreshold(SystemThreshold threshold)
+    {
+        if (threshold.NumLogicalCores < SysLogicalCores && threshold.MaxBaseFrequency < SysMaxBaseFrequency
+            && threshold.UsablePhysMemoryGB < SysUsablePhysMemoryGB && threshold.CacheSizeMB < SysCacheSizeMB)
+        {
+            return true;
+        }
+        return false;
+    }
+
     void Awake()
     {
         InitializeResources();
         if (IsIntelCPU())
         {
-            Debug.Log("You are running on an Intel CPU");
-            Debug.Log("Default CPU threshold values based on i7-6700k specs @ ark.intel.com");
-            Debug.Log("Default core count threshold: " + GetThresholdLogicalCoreCount());
-            Debug.Log("Default maximum base frequency threshold: " + GetThresholdMaxBaseFrequencyMhz());
-            Debug.Log("Default cache size threshold: " + GetThresholdCacheSizeMB());
-            Debug.Log("Default memory threshold: " + GetThresholdMemoryGB());
-            Debug.Log("");
+            StringBuilder cpuNameBuffer = new StringBuilder(BufferSize);
+            GetProcessorName(cpuNameBuffer, ref BufferSize);
+            SysLogicalCores = GetNumLogicalCores();
+            SysUsablePhysMemoryGB = GetUsablePhysMemoryGB();
+            SysMaxBaseFrequency = GetMaxBaseFrequency();
+            SysCacheSizeMB = GetCacheSizeMB();
 
+            string CPUName = cpuNameBuffer.ToString();
+
+            Debug.Log("You are running on an Intel CPU - " + CPUName);
             Debug.Log("The following are values queried from the system:");
-            Debug.Log("Number of logical cores = " + GetNumLogicalCores());
-            Debug.Log("Total physical memory = " + GetUsablePhysMemoryGB());
-            Debug.Log("Maximum base frequency per core = " + GetMaxBaseFrequency());
-            Debug.Log("Cache size = " + GetCacheSizeMB());
+            Debug.Log("Number of logical cores = " + SysLogicalCores);
+            Debug.Log("Total physical memory = " + SysUsablePhysMemoryGB);
+            Debug.Log("Maximum base frequency per core = " + SysMaxBaseFrequency);
+            Debug.Log("Cache size = " + SysCacheSizeMB);
 
-            SYSTEM_LEVELS systemLevel = CategorizeSystemCPU();
-            if (systemLevel == SYSTEM_LEVELS.HIGH_END_SYSTEM)
-            {
-                Debug.Log("This system has been categorized as high end.  System values exceeded threshold.");
-            }
-            else
-            {
-                Debug.Log("This system has been categorized as low end.  System values didn't exceed threshold.");
-            }
-            Debug.Log("");
-
-            int newCoreCountThreshold = 4;
-            double newMemoryThresholdGB = 3.7;
-            double newMaxBaseFrequencyThresholdMhz = 2000;
-            double newCacheSizeThreshold = 4;
-            SetThresholdLogicalCoreCount(newCoreCountThreshold);
-            SetThresholdMemoryGB(newMemoryThresholdGB);
-            SetThresholdMaxBaseFrequencyMhz(newMaxBaseFrequencyThresholdMhz);
-            SetThresholdCacheSizeMB(newCacheSizeThreshold);
-            Debug.Log("Setting new core count threshold to: " + GetThresholdLogicalCoreCount());
-            Debug.Log("Setting new memory threshold to: " + GetThresholdMemoryGB());
-            Debug.Log("Setting new maximum base frequency threshold to: " + GetThresholdMaxBaseFrequencyMhz());
-            Debug.Log("Setting new cache size threshold to: " + GetThresholdCacheSizeMB());
-
-            systemLevel = CategorizeSystemCPU();
-
-            // if the system gets bucketed as a high end system based on the thresholds, or is whitelisted - enable CPU intensive features!
-            if (systemLevel == SYSTEM_LEVELS.HIGH_END_SYSTEM || IsWhitelistedCPU())
-            {
-                Debug.Log("With the new thresholds, this system has been categorized as high end.");
-            }
-            else
-            {
-                Debug.Log("With the new thresholds, this system has been categorized as low end.");
-            }
-            Debug.Log("");
-
-            Debug.Log("Extras:");
-            Debug.Log("Comitted Memory (MB) = " + GetComittedMemoryMB());
-            Debug.Log("Available Memory (MB) = " + GetAvailableMemoryMB());
-            Debug.Log("Num physical cores = " + GetNumPhysicalCores());
-
-            int bufferSize = 512;
-
-            StringBuilder fullNameBuffer = new StringBuilder(bufferSize);
-            GetFullProcessorNameString(fullNameBuffer, ref bufferSize);
-            Debug.Log(fullNameBuffer);
-
-            StringBuilder cpuNameBuffer = new StringBuilder(bufferSize);
-            GetProcessorName(cpuNameBuffer, ref bufferSize);
-            Debug.Log(cpuNameBuffer);
+            SelfCheckDemo();
         }
         else
         {
             Debug.Log("You are not running on an Intel CPU");
         }
-
     }
 
-    // Allows the developer to specify specific CPU models that can be whitelisted
-    private bool IsWhitelistedCPU()
+    void SelfCheckDemo()
     {
-        int bufferSize = 512;
-        StringBuilder cpuNameBuffer = new StringBuilder(bufferSize);
-        GetProcessorName(cpuNameBuffer, ref bufferSize);
-        Debug.Log(cpuNameBuffer);
-        return (
-            (cpuNameBuffer.ToString() == "i7-3960X") ||
-            (cpuNameBuffer.ToString() == "i7-5930K") ||
-            (cpuNameBuffer.ToString() == "i7-4960X") ||
-            (cpuNameBuffer.ToString() == "i7-5960X") ||
-            (cpuNameBuffer.ToString() == "i7-5820K") ||
-            (cpuNameBuffer.ToString() == "i7-3970X") ||
-            (cpuNameBuffer.ToString() == "i7-4930K") ||
-            (cpuNameBuffer.ToString() == "i7-3930K") ||
-            (cpuNameBuffer.ToString() == "i7-6700K") ||
-            (cpuNameBuffer.ToString() == "i7-6700"));
+        SYSTEM_LEVELS SystemLevel;
+
+        // i5-4590
+        LowSettings.NumLogicalCores = 4;
+        LowSettings.UsablePhysMemoryGB = 8;
+        LowSettings.MaxBaseFrequency = 3.3;
+        LowSettings.CacheSizeMB = 6;
+
+        // i7 - 7820HK
+        MedSettings.NumLogicalCores = 8;
+        MedSettings.UsablePhysMemoryGB = 8;
+        MedSettings.MaxBaseFrequency = 3.9;
+        MedSettings.CacheSizeMB = 8;
+
+        // i7-6700k
+        HighSettings.NumLogicalCores = 8;
+        HighSettings.UsablePhysMemoryGB = 8;
+        HighSettings.MaxBaseFrequency = 4.0;
+        HighSettings.CacheSizeMB = 8;
+
+        if (IsSystemHigherThanThreshold(HighSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.HIGH))
+        {
+            SystemLevel = SYSTEM_LEVELS.HIGH;
+        }
+        else if (IsSystemHigherThanThreshold(MedSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.MEDIUM))
+        {
+            SystemLevel = SYSTEM_LEVELS.MEDIUM;
+        }
+        else if (IsSystemHigherThanThreshold(LowSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.OFF))
+        {
+            SystemLevel = SYSTEM_LEVELS.LOW;
+        }
+        else
+        {
+            SystemLevel = SYSTEM_LEVELS.OFF;
+        }
+
+        Debug.Log("Your system level has been categorized as: " + SystemLevel);
     }
 
+    // Allows you to specify specific CPU models that can be whitelisted
+    private bool IsWhitelistedCPU(SYSTEM_LEVELS sysLevelToCheck)
+    {
+        if (sysLevelToCheck == SYSTEM_LEVELS.HIGH)
+        {
+            return (
+                (CPUName == "i7-6700K"));
+        }
+        else if (sysLevelToCheck == SYSTEM_LEVELS.MEDIUM)
+        {
+            return (
+                (CPUName == "i7-7820HK"));
+        }
+        else if (sysLevelToCheck == SYSTEM_LEVELS.LOW)
+        {
+            return (
+                (CPUName == "i5-4590"));
+        }
+        else if (sysLevelToCheck == SYSTEM_LEVELS.OFF)
+        {
+            return (
+                (CPUName == "i3-6100"));
+        }
+        else
+        {
+            return false;
+        }
+    }
 }

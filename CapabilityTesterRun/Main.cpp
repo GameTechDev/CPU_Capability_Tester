@@ -1,7 +1,17 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright 2017 Intel Corporation
 //
-// Licensed under the Apache License, Version 2.0 (the "License");// you may not use this file except in compliance with the License.// You may obtain a copy of the License at//// http://www.apache.org/licenses/LICENSE-2.0//// Unless required by applicable law or agreed to in writing, software// distributed under the License is distributed on an "AS IS" BASIS,// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.// See the License for the specific language governing permissions and// limitations under the License.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
@@ -9,77 +19,166 @@
 #include "../CapabilityTester/CapabilityTester.h"
 #include <stdlib.h>
 
+enum SYSTEM_LEVELS
+{
+	OFF,
+	LOW,
+	MEDIUM,
+	HIGH,
+	NUM_SYSTEMS
+};
+
+struct SystemThreshold
+{
+public:
+	int NumLogicalCores;
+	double UsablePhysMemoryGB;
+	double MaxBaseFrequency;
+	double CacheSizeMB;
+
+	// Add your own metrics!
+};
+
+std::string CPUName;
+const int BufferSize = 512;
+int SysLogicalCores;
+double SysUsablePhysMemoryGB;
+double SysMaxBaseFrequency;
+double SysCacheSizeMB;
+
+SystemThreshold LowSettings;
+SystemThreshold MedSettings;
+SystemThreshold HighSettings;
+
+bool IsSystemHigherThanThreshold(SystemThreshold threshold)
+{
+	if (threshold.NumLogicalCores < SysLogicalCores && threshold.MaxBaseFrequency < SysMaxBaseFrequency
+		&& threshold.UsablePhysMemoryGB < SysUsablePhysMemoryGB && threshold.CacheSizeMB < SysCacheSizeMB)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+// Allows you to specify specific CPU models that can be whitelisted
+bool IsWhitelistedCPU(SYSTEM_LEVELS sysLevelToCheck)
+{
+	if (sysLevelToCheck == HIGH)
+	{
+		return (
+			(CPUName == "i7-6700K"));
+	}
+	else if (sysLevelToCheck == MEDIUM)
+	{
+		return (
+			(CPUName == "i7-7820HK"));
+	}
+	else if (sysLevelToCheck == LOW)
+	{
+		return (
+			(CPUName == "i5-4590"));
+	}
+	else if (sysLevelToCheck == OFF)
+	{
+		return (
+			(CPUName == "i3-6100"));
+	}
+	else
+	{
+		return false;
+	}
+}
+
+std::string SysLevelToString(SYSTEM_LEVELS level)
+{
+	if (level == HIGH)
+	{
+		return std::string("HIGH");
+	}
+	else if (level == MEDIUM)
+	{
+		return std::string("MEDIUM");
+	}
+	else if (level == LOW)
+	{
+		return std::string("LOW");
+	}
+	else
+	{
+		return std::string("OFF");
+	}
+}
+
+void SelfCheckDemo()
+{
+	SYSTEM_LEVELS SystemLevel = OFF;
+
+	// i5-4590
+	LowSettings.NumLogicalCores = 4;
+	LowSettings.UsablePhysMemoryGB = 8;
+	LowSettings.MaxBaseFrequency = 3.3;
+	LowSettings.CacheSizeMB = 6;
+
+	// i7 - 7820HK
+	MedSettings.NumLogicalCores = 8;
+	MedSettings.UsablePhysMemoryGB = 8;
+	MedSettings.MaxBaseFrequency = 3.9;
+	MedSettings.CacheSizeMB = 8;
+
+	// i7-6700k
+	HighSettings.NumLogicalCores = 8;
+	HighSettings.UsablePhysMemoryGB = 8;
+	HighSettings.MaxBaseFrequency = 4.0;
+	HighSettings.CacheSizeMB = 8;
+
+	if (IsSystemHigherThanThreshold(HighSettings) || IsWhitelistedCPU(HIGH))
+	{
+		SystemLevel = HIGH;
+	}
+	else if (IsSystemHigherThanThreshold(MedSettings) || IsWhitelistedCPU(MEDIUM))
+	{
+		SystemLevel = MEDIUM;
+	}
+	else if (IsSystemHigherThanThreshold(LowSettings) || IsWhitelistedCPU(OFF))
+	{
+		SystemLevel = LOW;
+	}
+	else
+	{
+		SystemLevel = OFF;
+	}
+
+	std::cout << "Your system level has been categorized as: " << SysLevelToString(SystemLevel) << std::endl;
+}
+
 int main()
 {
 	InitializeResources();
 
 	if (IsIntelCPU())
 	{
-		std::cout << "Default CPU threshold values based on i7-6700k specs @ ark.intel.com" << std::endl;
-		std::cout << "Default core count threshold: " << GetThresholdLogicalCoreCount() << std::endl;
-		std::cout << "Default maximum base frequency threshold: " << GetThresholdMaxBaseFrequencyMhz() << std::endl;
-		std::cout << "Default cache size threshold: " << GetThresholdCacheSizeMB() << std::endl;
-		std::cout << "Default memory threshold: " << GetThresholdMemoryGB() << std::endl;
-		std::cout << std::endl;
+		char cpuName[BufferSize];
+		GetProcessorName(cpuName, (int*)&BufferSize);
+		SysLogicalCores = GetNumLogicalCores();
+		SysUsablePhysMemoryGB = GetUsablePhysMemoryGB();
+		SysMaxBaseFrequency = GetMaxBaseFrequency();
+		SysCacheSizeMB = GetCacheSizeMB();
 
-		std::cout << "The following are values queried from the system:" << std::endl;
+		CPUName = std::string(cpuName);
+
+		std::cout << "You are running on an Intel CPU - " << CPUName << std::endl;
+		std::cout << "The following are values queried from the system :" << std::endl;
 		std::cout << "Number of logical cores = " << GetNumLogicalCores() << std::endl;
 		std::cout << "Total physical memory = " << GetUsablePhysMemoryGB() << std::endl;
 		std::cout << "Maximum base frequency = " << GetMaxBaseFrequency() << std::endl;
 		std::cout << "Cache size = " << GetCacheSizeMB() << std::endl;
-		SYSTEM_LEVELS systemLevel = CategorizeSystemCPU();
-		if (systemLevel == HIGH_END_SYSTEM)
-		{
-			std::cout << "This system has been categorized as high end.  System values exceeded threshold." << std::endl;
-		}
-		else
-		{
-			std::cout << "This system has been categorized as low end.  System values didn't exceed threshold." << std::endl;
-		}
 
-		std::cout << std::endl;
-		int newCoreCountThreshold = 4;
-		double newMemoryThresholdGB = 3.7;
-		double newMaxBaseFrequencyThresholdMhz = 2000;
-		double newCacheSizeThreshold = 4;
-		SetThresholdLogicalCoreCount(newCoreCountThreshold);
-		SetThresholdMemoryGB(newMemoryThresholdGB);
-		SetThresholdMaxBaseFrequencyMhz(newMaxBaseFrequencyThresholdMhz);
-		SetThresholdCacheSizeMB(newCacheSizeThreshold);
-		std::cout << "Setting new core count threshold to: " << GetThresholdLogicalCoreCount() << std::endl;
-		std::cout << "Setting new memory threshold to: " << GetThresholdMemoryGB() << std::endl;
-		std::cout << "Setting new maximum base frequency threshold to: " << GetThresholdMaxBaseFrequencyMhz() << std::endl;
-		std::cout << "Setting new cache size threshold to: " << GetThresholdCacheSizeMB() << std::endl;
-
-		systemLevel = CategorizeSystemCPU();
-		if (systemLevel == HIGH_END_SYSTEM)
-		{
-			std::cout << "With the new thresholds, this system has been categorized as high end" << std::endl;
-		}
-		else
-		{
-			std::cout << "With the new thresholds, this system has been categorized as low end" << std::endl;
-		}
-
-		std::cout << std::endl;
-		std::cout << "Extras:" << std::endl;
-		std::cout << "Comitted Memory (MB) = " << GetComittedMemoryMB() << std::endl;
-		std::cout << "Available Memory (MB) = " << GetAvailableMemoryMB() << std::endl;
-		std::cout << "Num physical cores = " << GetNumPhysicalCores() << std::endl;
-
-		const int size = 128;
-		char fullCPUNameString[size];
-		char cpuUNameString[size];
-
-		GetFullProcessorNameString(fullCPUNameString, (int*)&size);
-		std::cout << "Full CPU Name String = " << std::string(fullCPUNameString) << std::endl;
-
-		GetProcessorName(cpuUNameString, (int*)&size);
-		std::cout << "CPU Name = " << std::string(cpuUNameString) << std::endl;
+		SelfCheckDemo();
 	}
 	else
 	{
-		std::cout << "Not an Intel CPU" << std::endl;
+		std::cout << "You are not running on an Intel CPU" << std::endl;
 	}
 
 	FreeResources();
