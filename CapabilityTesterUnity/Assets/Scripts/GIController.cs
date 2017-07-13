@@ -5,23 +5,28 @@ using UnityEngine;
 public class GIController : MonoBehaviour {
 
 	void Start () {
+        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
+    }
 
-        if (CPUCapabilityManager.Singleton.CPUCapabilityLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH)
+    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
+    {
+        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH)
         {
             DynamicGI.updateThreshold = 0;
         }
-        else if (CPUCapabilityManager.Singleton.CPUCapabilityLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
         {
             DynamicGI.updateThreshold = 25;
         }
-        else if (CPUCapabilityManager.Singleton.CPUCapabilityLevel == CPUCapabilityManager.SYSTEM_LEVELS.LOW)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.LOW)
         {
             DynamicGI.updateThreshold = 50;
         }
-        else if (CPUCapabilityManager.Singleton.CPUCapabilityLevel == CPUCapabilityManager.SYSTEM_LEVELS.OFF)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.OFF)
         {
             DynamicGI.updateThreshold = 100;
         }
+        Debug.Log("(" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so setting GI update threshold to: " + DynamicGI.updateThreshold);
     }
 }
 

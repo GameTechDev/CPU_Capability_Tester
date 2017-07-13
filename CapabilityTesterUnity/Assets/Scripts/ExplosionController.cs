@@ -23,7 +23,7 @@ public class ExplosionController : MonoBehaviour {
 
     public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
     {
-        // Only use if CPU deemed capable to handle it
+        // Only use if CPU deemed medium or high capability
         if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH
             || sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
         {
@@ -37,12 +37,17 @@ public class ExplosionController : MonoBehaviour {
                 CurrRigidbody.useGravity = false;
                 ObjRigidbodies.Add(CurrRigidbody);
             }
+            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so object (" + gameObject.name + ") is destructible");
+        }
+        else
+        {
+
+            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so object (" + gameObject.name + ") not destructible");
         }
     }
 
     public void ExplodeObject()
     {
-        Debug.Log("Exploded");
         HasExploded = true;
         if (IsCPUCapable)
         {
@@ -72,7 +77,10 @@ public class ExplosionController : MonoBehaviour {
     void OnCollisionEnter(Collision collision)
     {
         if(!HasExploded)
+        {
+            ExplosiveTransform.position = collision.contacts[0].point;
             ExplodeObject();
+        }
     }
 }
 
