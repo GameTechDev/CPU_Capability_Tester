@@ -15,7 +15,7 @@ public class ParticleSystemController : MonoBehaviour
         if(!Singleton)
         {
             Singleton = this;
-            Singleton.Init();
+            Debug.Log("Creating ParticleSystemController");
         }
         else
         {
@@ -24,16 +24,17 @@ public class ParticleSystemController : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
-    }
-
     public void Init()
     {
         ParticleSystems = gameObject.GetComponentsInChildren<ParticleSystem>();
         Debug.Log("Initializing ParticleSystemController");
     }
+
+    void Start()
+    {
+        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
+    }
+
 
     public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
     {
@@ -43,7 +44,9 @@ public class ParticleSystemController : MonoBehaviour
             {
                 var particleSysMain = ParticleSystems[i].main;
                 var particleSysCollision = ParticleSystems[i].collision;
-                particleSysMain.maxParticles = 10000;
+                var particleSysEmission = ParticleSystems[i].emission;
+                particleSysEmission.rateOverTime = 400.0f;
+                particleSysMain.maxParticles = 20000;
                 particleSysCollision.enabled = true;
                 particleSysCollision.type = ParticleSystemCollisionType.World;
             }
@@ -54,7 +57,9 @@ public class ParticleSystemController : MonoBehaviour
             {
                 var particleSysMain = ParticleSystems[i].main;
                 var particleSysCollision = ParticleSystems[i].collision;
-                particleSysMain.maxParticles = 5000;
+                var particleSysEmission = ParticleSystems[i].emission;
+                particleSysEmission.rateOverTime = 300.0f;
+                particleSysMain.maxParticles = 10000;
                 particleSysCollision.enabled = true;
                 particleSysCollision.type = ParticleSystemCollisionType.World;
             }
@@ -65,6 +70,8 @@ public class ParticleSystemController : MonoBehaviour
             {
                 var particleSysMain = ParticleSystems[i].main;
                 var particleSysCollision = ParticleSystems[i].collision;
+                var particleSysEmission = ParticleSystems[i].emission;
+                particleSysEmission.rateOverTime = 200.0f;
                 particleSysMain.maxParticles = 5000;
                 particleSysCollision.enabled = true;
                 particleSysCollision.type = ParticleSystemCollisionType.Planes;
@@ -80,6 +87,8 @@ public class ParticleSystemController : MonoBehaviour
             {
                 var particleSysMain = ParticleSystems[i].main;
                 var particleSysCollision = ParticleSystems[i].collision;
+                var particleSysEmission = ParticleSystems[i].emission;
+                particleSysEmission.rateOverTime = 100.0f;
                 particleSysMain.maxParticles = 3000;
                 particleSysCollision.enabled = false;
             }

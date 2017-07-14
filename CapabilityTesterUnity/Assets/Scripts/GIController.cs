@@ -12,6 +12,7 @@ public class GIController : MonoBehaviour {
         if (!Singleton)
         {
             Singleton = this;
+            Debug.Log("Creating GIController");
         }
         else
         {

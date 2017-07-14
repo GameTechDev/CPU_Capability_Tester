@@ -12,12 +12,10 @@ public class SunRotator : MonoBehaviour {
     bool IsDay = true;
 	
 	void Update () {
-        if (SunTransform.rotation == LightTransform.rotation)
+        if (Equals(SunTransform.rotation, LightTransform.rotation))
             IsDay = true;
-        if (SunTransform.rotation == DarkTransform.rotation)
-        {
+        if (Equals(SunTransform.rotation, DarkTransform.rotation))
             IsDay = false;
-        }
 
         if (IsDay)
             SunTransform.rotation = Quaternion.Lerp(SunTransform.rotation, DarkTransform.rotation, Time.deltaTime * LightAndDarkTransitionTime);

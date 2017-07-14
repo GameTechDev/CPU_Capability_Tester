@@ -13,6 +13,7 @@ public class StaticDynamicController : MonoBehaviour {
     {
         if (!Singleton)
         {
+            Debug.Log("Creating StaticDynamicController");
             Singleton = this;
         }
         else

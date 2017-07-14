@@ -136,12 +136,56 @@ public class CPUCapabilityManager : MonoBehaviour
 
     public static CPUCapabilityManager Singleton = null;
 
-    private SYSTEM_LEVELS MySystemLevel;
+    SYSTEM_LEVELS MySystemLevel = SYSTEM_LEVELS.OFF;
     public SYSTEM_LEVELS CPUCapabilityLevel
     {
         get
         {
             return MySystemLevel;
+        }
+        set
+        {
+            MySystemLevel = value;
+        }
+    }
+
+    public string CPUNameString
+    {
+        get
+        {
+            return CPUName;
+        }
+    }
+
+    public int LogicalCoreCount
+    {
+        get
+        {
+            return SysLogicalCores;
+        }
+    }
+
+    public double PhysicalMemoryGB
+    {
+        get
+        {
+            return SysUsablePhysMemoryGB;
+        }
+    }
+
+    public double MaxBaseFrequency
+    {
+        get
+        {
+            return SysMaxBaseFrequency;
+        }
+    }
+
+    public double CacheSizeMB
+    {
+        get
+        {
+            return SysCacheSizeMB;
         }
     }
 
@@ -160,14 +204,17 @@ public class CPUCapabilityManager : MonoBehaviour
         if(!Singleton)
         {
             Singleton = this;
-            QueryCPU();
         }
         else
         {
             Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of CPUCapabilityManager needed at once");
             DestroyImmediate(this);
         }
+    }
 
+    public void Init()
+    {
+        QueryCPU();
     }
 
     void QueryCPU()
@@ -182,7 +229,7 @@ public class CPUCapabilityManager : MonoBehaviour
             SysMaxBaseFrequency = GetMaxBaseFrequency();
             SysCacheSizeMB = GetCacheSizeMB();
 
-            string CPUName = cpuNameBuffer.ToString();
+            CPUName = cpuNameBuffer.ToString();
 
             Debug.Log("You are running on an Intel CPU - " + CPUName);
             Debug.Log("The following are values queried from the system:");
