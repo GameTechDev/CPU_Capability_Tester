@@ -1,14 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class StaticDynamicController : MonoBehaviour {
 
+    public static StaticDynamicController Singleton = null;
     public GameObject[] PotentiallyDynamicObjects;
-
     int NumDynamicObjects = 0;
     
-	void Start () {
+    void Awake()
+    {
+        if (!Singleton)
+        {
+            Singleton = this;
+        }
+        else
+        {
+            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of GIController needed at once");
+            DestroyImmediate(this);
+        }
+    }
+
+    public void Init()
+    {
+        Debug.Log("Initializing StaticDynamicController");
+    }
+
+    void Start () {
         SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
     }
 
@@ -31,7 +50,7 @@ public class StaticDynamicController : MonoBehaviour {
             NumDynamicObjects = 0;
         }
 
-        Debug.Log("(" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so setting number of dynamic objects to: " + NumDynamicObjects);
+        Debug.Log("(Obj:" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so setting number of dynamic objects to: " + NumDynamicObjects);
 
         for (int i = 0; i < NumDynamicObjects; i++)
         {

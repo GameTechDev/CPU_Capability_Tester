@@ -1,10 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class GIController : MonoBehaviour {
 
-	void Start () {
+    public static GIController Singleton = null;
+    
+    void Awake()
+    {
+        if (!Singleton)
+        {
+            Singleton = this;
+        }
+        else
+        {
+            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of GIController needed at once");
+            DestroyImmediate(this);
+        }
+    }
+
+    public void Init()
+    {
+        Debug.Log("Initializing GIController");
+    }
+
+    void Start () {
         SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
     }
 

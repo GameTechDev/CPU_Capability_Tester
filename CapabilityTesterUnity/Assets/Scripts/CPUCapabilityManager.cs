@@ -164,7 +164,7 @@ public class CPUCapabilityManager : MonoBehaviour
         }
         else
         {
-            Assert.IsNotNull(Singleton, "(" + gameObject.name + ") Only 1 instance of CPUCapabilityManager needed at once");
+            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of CPUCapabilityManager needed at once");
             DestroyImmediate(this);
         }
 
