@@ -13,74 +13,66 @@
 // SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Assertions;
 
 public class CPUSystemManager : MonoBehaviour {
 
-    public static CPUSystemManager Singleton = null;
+    private static CPUSystemManager Singleton = null;
 
-    static CPUCapabilityManager.SYSTEM_LEVELS CurrentLevel = CPUCapabilityManager.SYSTEM_LEVELS.NUM_SYSTEMS;
-    public bool ReloadingLevel = false;
+    CPUCapabilityManager.SYSTEM_LEVEL CurrentLevel = CPUCapabilityManager.SYSTEM_LEVEL.NUM_SYSTEMS;
+
+    public static CPUSystemManager Instance
+    {
+        get
+        {
+            if (!Singleton)
+            {
+                Singleton = FindObjectOfType(typeof(CPUSystemManager)) as CPUSystemManager;
+
+                if (!Singleton)
+                {
+                    Debug.LogError("There needs to be one active CPUSystemManager script on a gameobject in your scene");
+                }
+            }
+            return Singleton;
+        }
+    }
 
     void Awake()
     {
         if (!Singleton)
         {
             Singleton = this;
-            DontDestroyOnLoad(this);
-            Singleton.Init();
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            // Correct timing on scene reload
-            if (Singleton.ReloadingLevel)
-            {
-                Init();
-                Singleton.ReloadingLevel = false;
-            }
             Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of CPUSystemManager needed at once");
             DestroyImmediate(this);
         }
     }
 
-    private void Init()
+    void Start()
     {
-        CPUCapabilityManager.Singleton.Init();
-        if(CurrentLevel == CPUCapabilityManager.SYSTEM_LEVELS.NUM_SYSTEMS)
-        {
-            // First run - query hardware and choose system level based on CPUCapabilityManager thresholds
-            CurrentLevel = CPUCapabilityManager.Singleton.CPUCapabilityLevel;
-        }
-        else
-        {
-            CPUCapabilityManager.Singleton.CPUCapabilityLevel = CurrentLevel;
-        }
-
-        StaticDynamicController.Singleton.Init();
-        ParticleSystemController.Singleton.Init();
-        GIController.Singleton.Init();
-        UIController.Singleton.Init();
-
-        //StaticDynamicController.Singleton.SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
-        //ParticleSystemController.Singleton.SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
-        //GIController.Singleton.SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
+        // First run - query hardware and choose system level based on CPUCapabilityManager thresholds
+        CurrentLevel = CPUCapabilityManager.Instance.CPUCapabilityLevel;
+        SceneManager.LoadScene("CPU_Capability_Demo");
+        UIController.Instance.RefreshText();
     }
 
-    public IEnumerator SwitchSetting()
+    public void SwitchSetting()
     {
         CurrentLevel = GetNextCPUSetting();
-        yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);                  // Reload level with next CPU Setting
-        ReloadingLevel = true;
+        CPUCapabilityManager.Instance.CPUCapabilityLevel = CurrentLevel;
+        SceneManager.LoadScene("CPU_Capability_Demo");
+        UIController.Instance.RefreshText();
     }
 
-    public CPUCapabilityManager.SYSTEM_LEVELS GetNextCPUSetting()
+    public CPUCapabilityManager.SYSTEM_LEVEL GetNextCPUSetting()
     {
-        CPUCapabilityManager.SYSTEM_LEVELS nextLevel = (CPUCapabilityManager.SYSTEM_LEVELS)(((((int)CurrentLevel) + 1)) % ((int)CPUCapabilityManager.SYSTEM_LEVELS.NUM_SYSTEMS));
+        CPUCapabilityManager.SYSTEM_LEVEL nextLevel = (CPUCapabilityManager.SYSTEM_LEVEL)(((((int)CurrentLevel) + 1)) % ((int)CPUCapabilityManager.SYSTEM_LEVEL.NUM_SYSTEMS));
         return nextLevel;
     }
 }

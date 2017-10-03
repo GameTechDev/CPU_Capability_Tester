@@ -20,40 +20,19 @@ using UnityEngine.Assertions;
 
 public class ParticleSystemController : MonoBehaviour
 {
-    public static ParticleSystemController Singleton = null;
-
     ParticleSystem[] ParticleSystems;
     public Transform[] CollisionPlanes;
 
-    void Awake()
-    {
-        if(!Singleton)
-        {
-            Singleton = this;
-            Debug.Log("Creating ParticleSystemController");
-        }
-        else
-        {
-            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of ParticleSystemController needed at once");
-            DestroyImmediate(this);
-        }
-    }
-
-    public void Init()
-    {
-        ParticleSystems = gameObject.GetComponentsInChildren<ParticleSystem>();
-        Debug.Log("Initializing ParticleSystemController");
-    }
-
     void Start()
     {
-        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
+        Debug.Log("Initializing ParticleSystemController");
+        ParticleSystems = gameObject.GetComponentsInChildren<ParticleSystem>();
+        SetCPULevel(CPUCapabilityManager.Instance.CPUCapabilityLevel);
     }
 
-
-    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
+    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVEL sysLevel)
     {
-        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH)
+        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.HIGH)
         {
             for (int i = 0; i < ParticleSystems.Length; i++)
             {
@@ -66,7 +45,7 @@ public class ParticleSystemController : MonoBehaviour
                 particleSysCollision.type = ParticleSystemCollisionType.World;
             }
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.MEDIUM)
         {
             for (int i = 0; i < ParticleSystems.Length; i++)
             {
@@ -79,7 +58,7 @@ public class ParticleSystemController : MonoBehaviour
                 particleSysCollision.type = ParticleSystemCollisionType.World;
             }
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.LOW)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.LOW)
         {
             for (int i = 0; i < ParticleSystems.Length; i++)
             {
@@ -96,7 +75,7 @@ public class ParticleSystemController : MonoBehaviour
                 }
             }
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.OFF)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.OFF)
         {
             for (int i = 0; i < ParticleSystems.Length; i++)
             {

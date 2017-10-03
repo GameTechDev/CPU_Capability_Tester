@@ -12,59 +12,37 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 // SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public class GIController : MonoBehaviour {
 
-    public static GIController Singleton = null;
-    
-    void Awake()
-    {
-        if (!Singleton)
-        {
-            Singleton = this;
-            Debug.Log("Creating GIController");
-        }
-        else
-        {
-            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of GIController needed at once");
-            DestroyImmediate(this);
-        }
-    }
-
-    public void Init()
+    void Start ()
     {
         Debug.Log("Initializing GIController");
+        SetCPULevel(CPUCapabilityManager.Instance.CPUCapabilityLevel);
     }
 
-    void Start () {
-        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
-    }
-
-    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
+    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVEL sysLevel)
     {
-        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH)
+        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.HIGH)
         {
             DynamicGI.updateThreshold = 0;
+            DynamicGI.synchronousMode = true;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.MEDIUM)
         {
-            DynamicGI.updateThreshold = 25;
+            DynamicGI.updateThreshold = 15;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.LOW)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.LOW)
         {
-            DynamicGI.updateThreshold = 50;
+            DynamicGI.updateThreshold = 35;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.OFF)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.OFF)
         {
-            DynamicGI.updateThreshold = 100;
+            DynamicGI.updateThreshold = 45;
         }
-        Debug.Log("(" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so setting GI update threshold to: " + DynamicGI.updateThreshold);
     }
 }
+
 
 

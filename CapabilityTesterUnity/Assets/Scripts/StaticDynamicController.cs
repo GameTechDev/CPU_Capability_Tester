@@ -19,54 +19,36 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 public class StaticDynamicController : MonoBehaviour {
-
-    public static StaticDynamicController Singleton = null;
+    
     public GameObject[] PotentiallyDynamicObjects;
     int NumDynamicObjects = 0;
-    
-    void Awake()
-    {
-        if (!Singleton)
-        {
-            Debug.Log("Creating StaticDynamicController");
-            Singleton = this;
-        }
-        else
-        {
-            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of GIController needed at once");
-            DestroyImmediate(this);
-        }
-    }
 
-    public void Init()
+    void Start ()
     {
         Debug.Log("Initializing StaticDynamicController");
+        SetCPULevel(CPUCapabilityManager.Instance.CPUCapabilityLevel);
     }
 
-    void Start () {
-        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
-    }
-
-    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
+    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVEL sysLevel)
     {
-        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH)
+        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.HIGH)
         {
             NumDynamicObjects = PotentiallyDynamicObjects.Length;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.MEDIUM)
         {
             NumDynamicObjects = PotentiallyDynamicObjects.Length / 2;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.LOW)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.LOW)
         {
             NumDynamicObjects = PotentiallyDynamicObjects.Length / 3;
         }
-        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.OFF)
+        else if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.OFF)
         {
             NumDynamicObjects = 0;
         }
 
-        Debug.Log("(Obj:" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so setting number of dynamic objects to: " + NumDynamicObjects);
+        Debug.Log("(Obj:" + gameObject.name + ") System capability set to: " + CPUCapabilityManager.Instance.CPUCapabilityLevel + ", so setting number of dynamic objects to: " + NumDynamicObjects);
 
         for (int i = 0; i < NumDynamicObjects; i++)
         {

@@ -16,7 +16,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 using System.Runtime.InteropServices;
-using System;
 using System.Text;
 
 public class CPUCapabilityManager : MonoBehaviour
@@ -43,7 +42,7 @@ public class CPUCapabilityManager : MonoBehaviour
     [DllImport("CapabilityTester")]
     private static extern double GetCacheSizeMB();
     [DllImport("CapabilityTester")]
-    private static extern SYSTEM_LEVELS CategorizeSystemCPU();
+    private static extern SYSTEM_LEVEL CategorizeSystemCPU();
     #endregion
 
     #region Threshold Getters and Setters
@@ -102,7 +101,7 @@ public class CPUCapabilityManager : MonoBehaviour
 
     #endregion
 
-    public enum SYSTEM_LEVELS
+    public enum SYSTEM_LEVEL
     {
         OFF,
         LOW,
@@ -133,10 +132,27 @@ public class CPUCapabilityManager : MonoBehaviour
     SystemThreshold MedSettings;
     SystemThreshold HighSettings;
 
-    public static CPUCapabilityManager Singleton = null;
+    private static CPUCapabilityManager Singleton = null;
 
-    SYSTEM_LEVELS MySystemLevel = SYSTEM_LEVELS.OFF;
-    public SYSTEM_LEVELS CPUCapabilityLevel
+    public static CPUCapabilityManager Instance
+    {
+        get
+        {
+            if (!Singleton)
+            {
+                Singleton = FindObjectOfType(typeof(CPUCapabilityManager)) as CPUCapabilityManager;
+
+                if (!Singleton)
+                {
+                    Debug.LogError("There needs to be one active CPUCapabilityManager script on a gameobject in your scene");
+                }
+            }
+            return Singleton;
+        }
+    }
+
+    SYSTEM_LEVEL MySystemLevel = SYSTEM_LEVEL.OFF;
+    public SYSTEM_LEVEL CPUCapabilityLevel
     {
         get
         {
@@ -203,6 +219,8 @@ public class CPUCapabilityManager : MonoBehaviour
         if(!Singleton)
         {
             Singleton = this;
+            DontDestroyOnLoad(gameObject);
+            Init();
         }
         else
         {
@@ -265,45 +283,45 @@ public class CPUCapabilityManager : MonoBehaviour
         HighSettings.MaxBaseFrequency = 4.0;
         HighSettings.CacheSizeMB = 8;
 
-        if (IsSystemHigherThanThreshold(HighSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.HIGH))
+        if (IsSystemHigherThanThreshold(HighSettings) || IsWhitelistedCPU(SYSTEM_LEVEL.HIGH))
         {
-            MySystemLevel = SYSTEM_LEVELS.HIGH;
+            MySystemLevel = SYSTEM_LEVEL.HIGH;
         }
-        else if (IsSystemHigherThanThreshold(MedSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.MEDIUM))
+        else if (IsSystemHigherThanThreshold(MedSettings) || IsWhitelistedCPU(SYSTEM_LEVEL.MEDIUM))
         {
-            MySystemLevel = SYSTEM_LEVELS.MEDIUM;
+            MySystemLevel = SYSTEM_LEVEL.MEDIUM;
         }
-        else if (IsSystemHigherThanThreshold(LowSettings) || IsWhitelistedCPU(SYSTEM_LEVELS.OFF))
+        else if (IsSystemHigherThanThreshold(LowSettings) || IsWhitelistedCPU(SYSTEM_LEVEL.OFF))
         {
-            MySystemLevel = SYSTEM_LEVELS.LOW;
+            MySystemLevel = SYSTEM_LEVEL.LOW;
         }
         else
         {
-            MySystemLevel = SYSTEM_LEVELS.OFF;
+            MySystemLevel = SYSTEM_LEVEL.OFF;
         }
 
         Debug.Log("Your system level has been categorized as: " + MySystemLevel);
     }
 
     // Allows you to specify specific CPU models that can be whitelisted
-    private bool IsWhitelistedCPU(SYSTEM_LEVELS sysLevelToCheck)
+    private bool IsWhitelistedCPU(SYSTEM_LEVEL sysLevelToCheck)
     {
-        if (sysLevelToCheck == SYSTEM_LEVELS.HIGH)
+        if (sysLevelToCheck == SYSTEM_LEVEL.HIGH)
         {
             return (
                 (CPUName == "i7-6700K"));
         }
-        else if (sysLevelToCheck == SYSTEM_LEVELS.MEDIUM)
+        else if (sysLevelToCheck == SYSTEM_LEVEL.MEDIUM)
         {
             return (
                 (CPUName == "i7-7820HK"));
         }
-        else if (sysLevelToCheck == SYSTEM_LEVELS.LOW)
+        else if (sysLevelToCheck == SYSTEM_LEVEL.LOW)
         {
             return (
                 (CPUName == "i5-4590"));
         }
-        else if (sysLevelToCheck == SYSTEM_LEVELS.OFF)
+        else if (sysLevelToCheck == SYSTEM_LEVEL.OFF)
         {
             return (
                 (CPUName == "i3-6100"));

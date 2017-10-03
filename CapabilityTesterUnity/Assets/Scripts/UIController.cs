@@ -13,8 +13,6 @@
 // SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Assertions;
@@ -30,39 +28,57 @@ public class UIController : MonoBehaviour {
     public Text MaxBaseFreqText = null;
     public Text CacheSizeText = null;
 
-    public static UIController Singleton = null;
+    private static UIController Singleton = null;
+
+    public static UIController Instance
+    {
+        get
+        {
+            if (!Singleton)
+            {
+                Singleton = FindObjectOfType(typeof(UIController)) as UIController;
+
+                if (!Singleton)
+                {
+                    Debug.LogError("There needs to be one active UIController script on a gameobject in your scene");
+                }
+            }
+            return Singleton;
+        }
+    }
 
     void Awake()
     {
         if (!Singleton)
         {
             Singleton = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of CPUSystemManager needed at once");
+            Assert.IsNotNull(Singleton, "(Obj:" + gameObject.name + ") Only 1 instance of UIController needed at once");
             DestroyImmediate(this);
         }
     }
     
-    public void Init()
-    {
-        ToggleSimulationButton.onClick.AddListener(() => ToggleButton());
-    }
-
     public void ToggleButton()
     {
-        StartCoroutine(CPUSystemManager.Singleton.SwitchSetting());
+        CPUSystemManager.Instance.SwitchSetting();
     }
 
     void Start()
     {
-        SimulationButtonText.text = "Press to Force Setting: " + CPUSystemManager.Singleton.GetNextCPUSetting();
-        CurrentCapabilityText.text = "Current CPU Capability Level: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel;
-        CPUNameText.text = "CPU Name: " + CPUCapabilityManager.Singleton.CPUNameString;
-        NumLogicalCoresText.text = "Number of Logical Cores: " + CPUCapabilityManager.Singleton.LogicalCoreCount;
-        PhysMemGBText.text = "Physical Memory (GB): " + CPUCapabilityManager.Singleton.PhysicalMemoryGB;
-        MaxBaseFreqText.text = "Maxmimum Base Frequency (MHz): " + CPUCapabilityManager.Singleton.MaxBaseFrequency;
-        CacheSizeText.text = "Cache Size (MB): " + CPUCapabilityManager.Singleton.CacheSizeMB;
+        ToggleSimulationButton.onClick.AddListener(() => ToggleButton());
+    }
+
+    public void RefreshText()
+    {
+        SimulationButtonText.text = "Press to Force Setting: " + CPUSystemManager.Instance.GetNextCPUSetting();
+        CurrentCapabilityText.text = "Current CPU Capability Level: " + CPUCapabilityManager.Instance.CPUCapabilityLevel;
+        CPUNameText.text = "CPU Name: " + CPUCapabilityManager.Instance.CPUNameString;
+        NumLogicalCoresText.text = "Number of Logical Cores: " + CPUCapabilityManager.Instance.LogicalCoreCount;
+        PhysMemGBText.text = "Physical Memory (GB): " + CPUCapabilityManager.Instance.PhysicalMemoryGB;
+        MaxBaseFreqText.text = "Maxmimum Base Frequency (MHz): " + CPUCapabilityManager.Instance.MaxBaseFrequency;
+        CacheSizeText.text = "Cache Size (MB): " + CPUCapabilityManager.Instance.CacheSizeMB;
     }
 }

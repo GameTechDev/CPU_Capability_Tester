@@ -33,14 +33,14 @@ public class ExplosionController : MonoBehaviour {
     
 	void Start ()
     {
-        SetCPULevel(CPUCapabilityManager.Singleton.CPUCapabilityLevel);
+        SetCPULevel(CPUCapabilityManager.Instance.CPUCapabilityLevel);
     }
 
-    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVELS sysLevel)
+    public void SetCPULevel(CPUCapabilityManager.SYSTEM_LEVEL sysLevel)
     {
         // Only use if CPU deemed medium or high capability
-        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.HIGH
-            || sysLevel == CPUCapabilityManager.SYSTEM_LEVELS.MEDIUM)
+        if (sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.HIGH
+            || sysLevel == CPUCapabilityManager.SYSTEM_LEVEL.MEDIUM)
         {
             IsCPUCapable = true;
 
@@ -52,12 +52,12 @@ public class ExplosionController : MonoBehaviour {
                 CurrRigidbody.useGravity = false;
                 ObjRigidbodies.Add(CurrRigidbody);
             }
-            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so object (" + gameObject.name + ") is destructible");
+            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Instance.CPUCapabilityLevel + ", so object (" + gameObject.name + ") is destructible");
         }
         else
         {
 
-            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Singleton.CPUCapabilityLevel + ", so object (" + gameObject.name + ") not destructible");
+            Debug.Log("(ExplosionController) System capability set to: " + CPUCapabilityManager.Instance.CPUCapabilityLevel + ", so object (" + gameObject.name + ") not destructible");
         }
     }
 
